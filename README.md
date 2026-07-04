@@ -62,4 +62,5 @@ TASK 4:
     * Nếu là NoteLoading thì hiển thị CircularProgressIndicator.
     * Nếu là NoteLoaded thì dùng ListView.builder để hiển thị toàn bộ danh sách Note.
     * Nếu là NoteError thì hiển thị thông báo lỗi.
+    
 --> Bloc tách biệt UI và business logic. UI không làm việc trực tiếp với Repository mà chỉ gửi Event đến Bloc. Bloc chịu trách nhiệm xử lý nghiệp vụ, gọi Repository và phát State mới để UI tự động cập nhật.
