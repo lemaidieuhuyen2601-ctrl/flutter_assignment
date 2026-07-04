@@ -34,5 +34,32 @@ TASK 3:
   + Khi người dùng tạo Note thì Repository nhận Note mới, sau đó StreamController sẽ phát dữ liệu rồi Stream gửi dữ liệu tới UI và StreamBuilder tự rebuild giao diện. 
   + Kết quả: mỗi lần người dùng nhấn tạo Note thì sẽ xuất hiện một Note mới có title:... và nội dung:... và sẽ có một thông báo "New note received" xuất hiện với mỗi lần 1 Note mới được tạo.
 
-
-
+TASK 4:
+- Tạo thư mục theo cấu trúc:
+    features/
+    └── notes/
+        ├── bloc/
+        ├── data/
+        ├── domain/
+        └── presentation/
+  + bloc chứa Event, State và Bloc. 
+    data chứa NoteRepository, chịu trách nhiệm thao tác với dữ liệu.
+    domain chứa model Note.
+    presentation chứa giao diện NotePage.
+- Trong thư mục domain, tạo model Note.
+- Trong thư mục data tạo lớp NoteRepository, sau đó lần lượt tạo các hàm: getNotes(), createNote(), updateNote(), deleteNote()
+- Trong thư mục bloc:
+  + Tạo các Event: LoadNotes (mở app), CreateNote (thêm note), UpdateNote (sửa note), DeleteNote (xóa note).
+  + Tạo các State: NoteInitial, NoteLoading (đang tải dữ liệu), NoteLoaded (tải dữ liệu thành công), NoteError (xảy ra lỗi).
+  + Tạo NoteBloc, trong Bloc xử lí từng Event bằng: on<LoadNotes>(), on<CreateNote>(), on<DeleteNote>(), on<UpdateNote>()
+    * Ví dụ với LoadNotes: Đầu tiên phát ra emit(NoteLoading()) để UI hiển thị trạng thái đang tải, sau đó gọi repository.getNotes() lấy dữ liệu. Khi lấy thành công thì emit(NoteLoaded(notes)). Nếu có lỗi thì emit(NoteError(...)).
+    * Các Event còn lại cũng làm tương tự.
+- Sau đó kết nối Bloc trong main.dart:
+  + Dùng BlocProvider để tạo NoteBloc. Từ đó toàn bộ widget bên dưới đều có thể truy cập Bloc bằng context.read<NoteBloc>()
+- Trong thư mục presentation:
+  + Tạo 2 TextEditingController (tiêu đề, nội dung) để nhập dữ liệu.
+  + Dùng BlocBuilder để lắng nghe sự thay đổi của State:
+    * Nếu là NoteLoading thì hiển thị CircularProgressIndicator.
+    * Nếu là NoteLoaded thì dùng ListView.builder để hiển thị toàn bộ danh sách Note.
+    * Nếu là NoteError thì hiển thị thông báo lỗi.
+--> Bloc tách biệt UI và business logic. UI không làm việc trực tiếp với Repository mà chỉ gửi Event đến Bloc. Bloc chịu trách nhiệm xử lý nghiệp vụ, gọi Repository và phát State mới để UI tự động cập nhật.
