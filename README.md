@@ -64,3 +64,18 @@ TASK 4:
     * Nếu là NoteError thì hiển thị thông báo lỗi.
     
 --> Bloc tách biệt UI và business logic. UI không làm việc trực tiếp với Repository mà chỉ gửi Event đến Bloc. Bloc chịu trách nhiệm xử lý nghiệp vụ, gọi Repository và phát State mới để UI tự động cập nhật.
+
+TASK 5:
+- Tạo branch mới feature/riverpod từ branch feature/bloc để lấy các file cũ.
+- Xóa toàn bộ các file trong thư mục bloc.
+- Giữ nguyên code của các file note_repository.dart, note.dart, thay đổi code file note_page.dart
+- Tạo thư mục provider và file note_provider:
+  + Viết phương thức build() để tải dữ liệu ban đầu.
+  + Lấy code từ file note_bloc.dart sau đó chuyển các hàm Bloc sang Provider: loadNotes(), createNote(), deleteNote(), updateNote()
+  + Tạo AsyncNotifierProvider.
+- Trong file main.dart:
+  + Bọc MyApp trong ProviderScope để toàn bộ ứng dụng có thể sử dụng các Provider.
+- Trong file note_page.dart:
+  + Đổi các Widget thành: class NotePage extends ConsumerStatefulWidget và class _NotePageState extends ConsumerState<NotePage>.
+  + Trong initState() và ở các nút Add, Update, Delete cũng lần lượt thay context.read() thành ref.read()
+  + Thay BlocBuilder bằng ref.watch(...).when(...).
