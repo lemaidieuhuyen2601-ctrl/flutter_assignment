@@ -1,22 +1,20 @@
 //Toàn bộ UI
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/note_bloc.dart';
-import '../bloc/note_event.dart';
-import '../bloc/note_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../provider/note_provider.dart';
 import '../domain/note.dart';
 
-class NotePage extends StatefulWidget {
+class NotePage extends ConsumerStatefulWidget {
   const NotePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<NotePage> createState() => _NotePageState();
+  ConsumerState<NotePage> createState() => _NotePageState();
 }
 
-class _NotePageState extends State<NotePage> {
+class _NotePageState extends ConsumerState<NotePage> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
 
@@ -34,7 +32,7 @@ class _NotePageState extends State<NotePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<NoteBloc>().add(const LoadNotes());
+      ref.read(noteProvider.notifier).loadNotes();
     });
   }
 
@@ -78,7 +76,9 @@ class _NotePageState extends State<NotePage> {
                                 content: contentController.text,
                               );
 
-                              context.read<NoteBloc>().add(CreateNote(newNote));
+                              ref
+                                  .read(noteProvider.notifier)
+                                  .createNote(newNote);
 
                               titleController.clear();
                               contentController.clear();
@@ -98,9 +98,9 @@ class _NotePageState extends State<NotePage> {
                                 content: contentController.text,
                               );
 
-                              context.read<NoteBloc>().add(
-                                UpdateNote(updatedNote),
-                              );
+                              ref
+                                  .read(noteProvider.notifier)
+                                  .updateNote(updatedNote);
 
                               titleController.clear();
                               contentController.clear();
@@ -119,64 +119,63 @@ class _NotePageState extends State<NotePage> {
           const Divider(),
 
           Expanded(
-            child: BlocBuilder<NoteBloc, NoteState>(
-              builder: (context, state) {
-                // Xử lý các State ở đây
-                if (state is NoteLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            child: Builder(
+              builder: (context) {
+                final state = ref.watch(noteProvider);
 
-                if (state is NoteLoaded) {
-                  final notes = state.notes;
-                  return ListView.builder(
-                    itemCount: notes.length,
-                    itemBuilder: (context, index) {
-                      final note = notes[index];
+                return state.when(
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
 
-                      return ListTile(
-                        title: Text(note.title),
-                        subtitle: Text(note.content),
+                  error: (error, stackTrace) {
+                    return Center(
+                      child: Text(error.toString()),
+                    );
+                  },
 
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                setState(() {
-                                  selectedNoteId = note.id;
-                                  titleController.text = note.title;
-                                  contentController.text = note.content;
-                                });
-                              },
-                            ),
+                  data: (notes) {
+                    return ListView.builder(
+                      itemCount: notes.length,
+                      itemBuilder: (context, index) {
+                        final note = notes[index];
 
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                context.read<NoteBloc>().add(
-                                  DeleteNote(note.id),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
+                        return ListTile(
+                          title: Text(note.title),
+                          subtitle: Text(note.content),
 
-                if (state is NoteError) {
-                  return Center(child: Text(state.message));
-                }
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  setState(() {
+                                    selectedNoteId = note.id;
+                                    titleController.text = note.title;
+                                    contentController.text = note.content;
+                                  });
+                                },
+                              ),
 
-                return const SizedBox();
-                // return const Center(
-                //   child: Text("No data"),
-                // );
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  ref
+                                      .read(noteProvider.notifier)
+                                      .deleteNote(note.id);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
               },
             ),
-          ),
+          ),          
         ],
       ),
     );
